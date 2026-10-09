@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="460" viewBox="0 0 920 460">
+<rect width="920" height="460" fill="#0e141b"/>
+<text x="460" y="32" fill="#e8eef4" font-size="18" text-anchor="middle" font-family="sans-serif">Veritas OTH node setup</text>
+<rect x="40" y="70" width="250" height="150" rx="8" fill="#1b2836" stroke="#7eb6ff"/>
+<text x="165" y="98" fill="#e8eef4" font-size="14" text-anchor="middle" font-family="sans-serif">Raspberry Pi 5</text>
+<text x="165" y="120" fill="#9fb0c3" font-size="12" text-anchor="middle" font-family="sans-serif">app, crypto, mesh</text>
+<text x="165" y="140" fill="#9fb0c3" font-size="12" text-anchor="middle" font-family="sans-serif">UDP 48750 timing</text>
+<text x="165" y="160" fill="#9fb0c3" font-size="12" text-anchor="middle" font-family="sans-serif">Tor SOCKS for IP hops</text>
+<rect x="40" y="250" width="250" height="120" rx="8" fill="#1b2836" stroke="#f0c674"/>
+<text x="165" y="278" fill="#e8eef4" font-size="14" text-anchor="middle" font-family="sans-serif">FPGA / SDR</text>
+<text x="165" y="300" fill="#9fb0c3" font-size="12" text-anchor="middle" font-family="sans-serif">NCO, phase, MIMO</text>
+<text x="165" y="320" fill="#9fb0c3" font-size="12" text-anchor="middle" font-family="sans-serif">hop + 31-chip spread</text>
+<text x="165" y="348" fill="#f0c674" font-size="12" text-anchor="middle" font-family="sans-serif">GPIO or USB</text>
+<rect x="360" y="250" width="200" height="120" rx="8" fill="#1b2836" stroke="#b5e48c"/>
+<text x="460" y="286" fill="#e8eef4" font-size="14" text-anchor="middle" font-family="sans-serif">Coil or vertical</text>
+<text x="460" y="310" fill="#9fb0c3" font-size="12" text-anchor="middle" font-family="sans-serif">coax feed</text>
+<text x="460" y="340" fill="#b5e48c" font-size="12" text-anchor="middle" font-family="sans-serif">upward beam</text>
+<rect x="630" y="250" width="180" height="120" rx="8" fill="#1b2836" stroke="#d4a373"/>
+<text x="720" y="286" fill="#e8eef4" font-size="14" text-anchor="middle" font-family="sans-serif">Ground rod</text>
+<text x="720" y="310" fill="#9fb0c3" font-size="12" text-anchor="middle" font-family="sans-serif">6-8 ft copper</text>
+<text x="720" y="332" fill="#9fb0c3" font-size="12" text-anchor="middle" font-family="sans-serif">heavy gauge to board</text>
+<rect x="300" y="70" width="320" height="70" rx="8" fill="#243044" stroke="#c9d7e8"/>
+<text x="460" y="100" fill="#e8eef4" font-size="14" text-anchor="middle" font-family="sans-serif">Ionosphere reflection</text>
+<text x="460" y="122" fill="#9fb0c3" font-size="12" text-anchor="middle" font-family="sans-serif">NVIS ~80 deg, or lower skywave hop</text>
+<path d="M165 220 L165 250" stroke="#f0c674" stroke-width="2"/>
+<path d="M290 310 L360 310" stroke="#b5e48c" stroke-width="2"/>
+<path d="M560 310 L630 310" stroke="#d4a373" stroke-width="2"/>
+<path d="M460 250 L460 140" stroke="#c9d7e8" stroke-width="2"/>
+<text x="460" y="430" fill="#9fb0c3" font-size="12" text-anchor="middle" font-family="sans-serif">Second node is the same stack. Mesh shares timing. Payload stays sealed.</text>
+</svg>
