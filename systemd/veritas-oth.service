@@ -1,0 +1,13 @@
+[Unit]
+Description=Veritas Mesh over-the-horizon planner
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/veritas-mesh-oth
+ExecStart=/opt/veritas-mesh-oth/.venv/bin/python -m app.web
+Restart=on-failure
+User=veritas
+
+[Install]
+WantedBy=multi-user.target
