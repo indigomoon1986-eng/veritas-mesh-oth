@@ -31,13 +31,13 @@ class MeshPacket:
         return hmac.compare_digest(expect, self.mac)
 
     def _canon(self) -> str:
-        return json.dumps(
-            {"node_id": self.node_id, "kind": self.kind, "seq": self.seq, "body": self.body},
-            sort_keys=True,
-            separators=(",", ":"),
-        )
+        return json.dumps({"node_id": self.node_id, "kind": self.kind, "seq": self.seq, "body": self.body}, sort_keys=True, separators=(",", ":"))
 
 
 def dumps(packet: MeshPacket) -> str:
     packet.sign()
     return json.dumps(asdict(packet))
+
+
+def loads(raw: str) -> MeshPacket:
+    return MeshPacket(**json.loads(raw))
