@@ -1,7 +1,7 @@
 """Radio board integration.
 
-apply_hop writes the plan with transmit clear.
 key() sets the transmit bit only after an explicit arm, and only on a configured band.
+key_on_receive() keys only when the mesh packet verified. It is not carrier operated.
 """
 
 from __future__ import annotations
@@ -43,6 +43,11 @@ class RadioBoard:
         if self.present:
             self._spi_write([(REG_CONTROL, TX_ENABLE)], allow_tx=True)
         return words
+
+    def key_on_receive(self, packet_ok: bool, freq_hz: float) -> list[tuple[int, int]]:
+        if not packet_ok:
+            return self.unkey()
+        return self.key(freq_hz)
 
     def unkey(self) -> list[tuple[int, int]]:
         words = [(REG_CONTROL, 0x0)]
