@@ -6,6 +6,26 @@ It reuses [veritas-mesh-beamform](https://github.com/indigomoon1986-eng/veritas-
 
 Licensed amateur (Part 97) or other authorized HF only. The stack plans and frames; it does not key a transmitter by itself.
 
+## Setup
+
+![Veritas OTH node setup](docs/setup.svg)
+
+```mermaid
+flowchart LR
+  subgraph node [One node]
+    Pi["Raspberry Pi 5\napp, crypto, mesh"]
+    Board["FPGA or SDR\nNCO, phase, MIMO, hop"]
+    Ant["Coil or vertical"]
+    Gnd["Copper ground rod"]
+    Pi -->|GPIO or USB| Board
+    Board -->|coax| Ant
+    Board -->|heavy gauge| Gnd
+  end
+  Ant -->|upward beam| Iono["Ionosphere"]
+  Iono --> Other["Second identical node"]
+  Pi -. UDP 48750 timing .-> Other
+```
+
 ## Path
 
 app -> crypto (ChaCha20-Poly1305, X25519 + ML-KEM-768) -> mesh (UDP 48750) -> rf -> ionosphere -> fpga / SDR, with feedback returning SNR and phase.
