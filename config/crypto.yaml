@@ -1,0 +1,8 @@
+hop:
+  dwell_ms: 250
+  spread: true
+tor:
+  socks: 127.0.0.1:9050
+  onion_port: 48750
+crypto:
+  aad: veritas-oth

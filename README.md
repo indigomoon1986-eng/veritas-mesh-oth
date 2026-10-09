@@ -21,4 +21,4 @@ pytest -q
 
 Sibling repo: https://github.com/indigomoon1986-eng/veritas-mesh-beamform
 
-IP hops leave the Pi through Tor SOCKS on 127.0.0.1:9050. The payload is ChaCha20-Poly1305. The carrier hops the configured bands on a 250 ms dwell with a 31-chip m-sequence. Part 97 amateur transmissions generally may not hide their meaning.
+IP hops leave the Pi through Tor SOCKS on 127.0.0.1:9050. The payload is ChaCha20-Poly1305. The carrier hops the configured bands on a 250 ms dwell with a 31-chip m-sequence in fpga/rtl/hop_spread.v. Part 97 amateur transmissions generally may not hide their meaning.
