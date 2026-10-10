@@ -1,4 +1,12 @@
-"""Payload crypto. ChaCha20-Poly1305. Session key is X25519 plus ML-KEM-768 via HKDF."""
+"""Payload crypto for the OTH and mesh planes.
+
+ChaCha20-Poly1305 on the message. Session key is a hybrid: X25519 plus ML-KEM-768.
+The two shared secrets are concatenated and run through HKDF.
+
+Part 97 forbids obscuring the meaning of an amateur transmission. Part 90
+industrial/business may encrypt only on an authorized emission, with a clear ID.
+The RF planner still does not key a transmitter.
+"""
 
 from __future__ import annotations
 
@@ -26,10 +34,7 @@ class HybridKey:
         return cls(x25519.X25519PrivateKey.generate(), MLKEM768PrivateKey.generate())
 
     def public_bytes(self) -> dict[str, bytes]:
-        x_pub = self.x_private.public_key().public_bytes(
-            encoding=serialization.Encoding.Raw,
-            format=serialization.PublicFormat.Raw,
-        )
+        x_pub = self.x_private.public_key().public_bytes(encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw)
         return {"x25519": x_pub, "mlkem768": self.pq_private.public_key().public_bytes_raw()}
 
 
