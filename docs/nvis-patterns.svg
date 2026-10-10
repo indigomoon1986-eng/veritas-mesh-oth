@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="420" viewBox="0 0 720 420">
+  <rect width="720" height="420" fill="#0e1116"/>
+  <text x="360" y="28" fill="#e8eef7" text-anchor="middle" font-family="sans-serif" font-size="18">NVIS elevation patterns, normalized</text>
+  <g transform="translate(180,360)">
+    <line x1="-140" y1="0" x2="140" y2="0" stroke="#445" />
+    <line x1="0" y1="0" x2="0" y2="-220" stroke="#445" />
+    <text x="0" y="-230" fill="#9ab" text-anchor="middle" font-size="12">90 overhead</text>
+    <text x="150" y="16" fill="#9ab" font-size="12">0 horizon</text>
+    <path d="M0,0 Q40,-20 120,-8 Q60,-40 0,-30 Q-60,-40 -120,-8 Q-40,-20 0,0" fill="#3a7bd5" fill-opacity="0.35" stroke="#7eb6ff" stroke-width="2"/>
+    <text x="0" y="40" fill="#7eb6ff" text-anchor="middle" font-size="13">vertical, max at horizon</text>
+  </g>
+  <g transform="translate(520,360)">
+    <line x1="-140" y1="0" x2="140" y2="0" stroke="#445" />
+    <line x1="0" y1="0" x2="0" y2="-220" stroke="#445" />
+    <text x="0" y="-230" fill="#9ab" text-anchor="middle" font-size="12">90 overhead</text>
+    <text x="150" y="16" fill="#9ab" font-size="12">0 horizon</text>
+    <path d="M0,0 Q-70,-40 -20,-200 Q0,-230 20,-200 Q70,-40 0,0" fill="#d4a017" fill-opacity="0.35" stroke="#f0c14d" stroke-width="2"/>
+    <text x="0" y="40" fill="#f0c14d" text-anchor="middle" font-size="13">low dipole, max overhead</text>
+  </g>
+  <text x="360" y="400" fill="#89a" text-anchor="middle" font-size="12">Teaching model: vertical ~ cos(el), low horizontal dipole ~ sin(el)</text>
+</svg>
