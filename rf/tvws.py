@@ -1,8 +1,7 @@
-"""TV white space hop, driven by Sophia.
+"""Part 15 Subpart H TV white space hop, driven by Sophia.
 
-Sophia picks the next dwell from a list of channels a white space database
-has already cleared for this location. An empty list means no hop and no key.
-This is Part 15 Subpart H, not amateur and not Part 90.
+A hop is legal only on a channel a white space database cleared for this
+location, at or under the power that database returned. No list, no hop.
 """
 
 from __future__ import annotations
@@ -13,17 +12,19 @@ TVWS = {14: 473.0, 15: 479.0, 16: 485.0, 17: 491.0, 18: 497.0, 19: 503.0, 20: 50
 
 
 @dataclass
-class SophiaTvws:
-    available: list[int] = field(default_factory=list)
+class Part15Tvws:
+    rule: str = "47 CFR 15 Subpart H"
+    available: dict[int, float] = field(default_factory=dict)
     index: int = 0
 
-    def load(self, channels: list[int]) -> None:
-        self.available = [c for c in channels if c in TVWS]
+    def load(self, cleared: dict[int, float]) -> None:
+        self.available = {ch: min(power, 4.0) for ch, power in cleared.items() if ch in TVWS}
         self.index = 0
 
     def next_hop(self) -> dict | None:
         if not self.available:
             return None
-        channel = self.available[self.index % len(self.available)]
+        channels = list(self.available)
+        channel = channels[self.index % len(channels)]
         self.index += 1
-        return {"channel": channel, "mhz": TVWS[channel], "keyed": False, "source": "sophia"}
+        return {"rule": self.rule, "channel": channel, "mhz": TVWS[channel], "power_w": self.available[channel], "keyed": False, "source": "sophia"}
