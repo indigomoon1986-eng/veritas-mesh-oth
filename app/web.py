@@ -2,14 +2,20 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from app.service import OthApp
 from app.types import Outbound, load_config
+from mesh.serialize import Concept, Step
+from rf.modulate import modulate
+from x402.policy import Amount, requirement, verify
 
 app = FastAPI(title="Veritas Mesh OTH")
 oth = OthApp()
+PRICE = Amount("10000", "USDC")
+PAY_TO = "veritas-mesh-treasury"
 
 
 class SendIn(BaseModel):
@@ -25,6 +31,18 @@ class FeedbackIn(SendIn):
     phase_error_deg: float = 0.0
 
 
+@app.middleware("http")
+async def x402_gate(request: Request, call_next):
+    if request.url.path != "/send":
+        return await call_next(request)
+    required = requirement(str(request.url), PRICE, PAY_TO)
+    state = verify(required, request.headers.get("PAYMENT-SIGNATURE"))
+    if not state.settled:
+        return JSONResponse(status_code=402, content={"x402Version": 2, "error": required.error}, headers={"PAYMENT-REQUIRED": required.header()})
+    request.state.x402 = state
+    return await call_next(request)
+
+
 @app.get("/health")
 def health():
     cfg = load_config()
@@ -37,8 +55,14 @@ def plan(body: SendIn):
 
 
 @app.post("/send")
-def send(body: SendIn):
-    return oth.send(Outbound(body.text, body.mode, body.azimuth_deg, body.range_km, body.freq_hz))
+def send(body: SendIn, request: Request):
+    out = oth.send(Outbound(body.text, body.mode, body.azimuth_deg, body.range_km, body.freq_hz))
+    state = request.state.x402
+    concepts = [Concept(1, "x402"), Concept(2, state.required.atomic)]
+    steps = [Step(1, 1, 2)]
+    out["x402"] = {"paid": state.settled, "amount": state.required.atomic, "payer": state.payer}
+    out["modulated"] = modulate(concepts, steps, out["frame"]["plan"]["freq_hz"], b"x402")
+    return out
 
 
 @app.post("/feedback")
