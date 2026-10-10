@@ -65,6 +65,7 @@ class Rail:
             return self._fail("validation", "amount is not fully typed")
         self.audit.append("validation")
         self.audit.append("execution")
+        self.audit.append("receipt")
         receipt = Receipt(True, "receipt", intent.amount, "typed transfer accepted on mesh", list(self.audit))
         self.audit.append("audit")
         receipt.audit = list(self.audit)
