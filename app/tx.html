@@ -1,0 +1,13 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Transmit</title>
+<body>
+  <button id="tx">transmit</button>
+  <script>
+    const btn = document.getElementById("tx");
+    const freq = 7090000;
+    btn.onmousedown = () => fetch("/tx/down?freq_hz=" + freq, {method: "POST"});
+    btn.onmouseup = () => fetch("/tx/up", {method: "POST"});
+    btn.onmouseleave = () => fetch("/tx/up", {method: "POST"});
+  </script>
+</body>
