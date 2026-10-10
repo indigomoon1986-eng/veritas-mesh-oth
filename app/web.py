@@ -2,18 +2,22 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
 from app.service import OthApp
 from app.types import Outbound, load_config
 from mesh.serialize import Concept, Step
+from radio.board import RadioBoard
 from rf.modulate import modulate
 from x402.policy import Amount, requirement, verify
 
 app = FastAPI(title="Veritas Mesh OTH")
 oth = OthApp()
+board = RadioBoard(load_config())
 PRICE = Amount("10000", "USDC")
 PAY_TO = "veritas-mesh-treasury"
 
@@ -46,7 +50,25 @@ async def x402_gate(request: Request, call_next):
 @app.get("/health")
 def health():
     cfg = load_config()
-    return {"node_id": cfg["node_id"], "path": "oth", "ok": True}
+    return {"node_id": cfg["node_id"], "path": "oth", "ok": True, "armed": board.armed, "tx": board.tx_enabled}
+
+
+@app.get("/tx")
+def tx_page():
+    return FileResponse(Path(__file__).with_name("tx.html"))
+
+
+@app.post("/tx/down")
+def tx_down(freq_hz: float):
+    board.arm()
+    words = board.key(freq_hz)
+    return {"armed": True, "tx": board.tx_enabled, "words": words}
+
+
+@app.post("/tx/up")
+def tx_up():
+    board.unkey()
+    return {"armed": board.armed, "tx": board.tx_enabled}
 
 
 @app.post("/plan")
