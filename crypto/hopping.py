@@ -7,7 +7,6 @@ chip sequence. Channels are the bands already listed in config.
 from __future__ import annotations
 
 import hashlib
-import math
 import time
 from typing import Any
 
@@ -26,28 +25,33 @@ def nco_word(freq_hz: float, clock_hz: float) -> int:
     return int(round(freq_hz / clock_hz * (1 << 32))) & 0xFFFFFFFF
 
 
-def schedule(cfg: dict[str, Any], key: bytes, now: float | None = None, slots: int = 8) -> list[dict]:
+def schedule(cfg: dict[str, Any], key: bytes, now: float | None = None, slots: int = 8) -> list[dict[str, float | int]]:
     channels = [float(b["hz"]) for b in cfg["bands"]]
     names = [b["name"] for b in cfg["bands"]]
     dwell = int(cfg.get("hop", {}).get("dwell_ms", 250))
-    clock = float(cfg.get("sample_clock_hz", 50_000_000))
+    clock = float(cfg.get("sample_clock_hz", cfg.get("array", {}).get("sample_clock_hz", 50_000_000)))
     start = current_slot(dwell, now)
     rows = []
     for n in range(slots):
         slot = start + n
         idx = hop_index(key, slot, len(channels))
         freq = channels[idx]
-        rows.append({"slot": slot, "channel": idx, "band": names[idx], "freq_hz": freq, "dwell_ms": dwell, "nco_word": nco_word(freq, clock)})
+        rows.append({"slot": slot, "channel": idx, "band": names[idx], "freq_hz": freq, "dwell_ms": dwell, "nco_word": nco_word(freq, clock), "starts_ms": slot * dwell})
     return rows
 
 
-def lfsr_code(seed: int, length: int = 31) -> list[int]:
+def next_frequency(cfg: dict[str, Any], key: bytes, now: float | None = None) -> dict[str, float | int]:
+    return schedule(cfg, key, now, slots=1)[0]
+
+
+def lfsr_code(seed: int, length: int = 31, taps: tuple[int, int] = (5, 2)) -> list[int]:
     state = (seed & 0x1F) or 1
     chips = []
+    width, tap = taps
     for _ in range(length):
         chips.append(1 if state & 1 else -1)
-        bit = (state ^ (state >> 1)) & 1
-        state = ((state >> 1) | (bit << 4)) & 0x1F
+        bit = (state ^ (state >> (tap - 1))) & 1
+        state = ((state >> 1) | (bit << (width - 1))) & ((1 << width) - 1)
     return chips
 
 
@@ -74,4 +78,5 @@ def despread(samples: list[int], chips: list[int]) -> list[int]:
 
 
 def processing_gain_db(chips: int) -> float:
+    import math
     return 10.0 * math.log10(max(chips, 1))
