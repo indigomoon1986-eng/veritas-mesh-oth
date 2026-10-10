@@ -1,7 +1,7 @@
 """Send path for an X.4.2 intent.
 
 Intent runs the rail. A failed stage never becomes a frame. A good receipt is
-packed and handed to the mesh as kind x42. This does not key the radio.
+packed, optionally sealed, and handed to the mesh as kind x42.
 """
 
 from __future__ import annotations
@@ -14,13 +14,13 @@ from x402.rail import Consent, Identity, Intent, Rail
 from x402.receive import send_frame
 
 
-def prepare(identity: Identity, intent: Intent, consent: Consent, freq_hz: float, key: bytes) -> dict:
+def prepare(identity, intent, consent, freq_hz: float, key: bytes, layer=None) -> dict:
     receipt = Rail(identity).run(intent, consent)
     if not receipt.ok:
         return {"ok": False, "stage": receipt.stage, "note": receipt.note, "packet": None}
     framed = frame_receipt(intent, receipt, freq_hz, key)
-    packet = send_frame(identity.node_id, intent, receipt)
-    return {"ok": True, "stage": "sent", "packet": packet, "framed": framed, "transmit": False}
+    packet = send_frame(identity.node_id, intent, receipt, layer)
+    return {"ok": True, "stage": "sent", "packet": packet, "framed": framed, "sealed": layer is not None, "transmit": False}
 
 
 def send(identity: Identity, intent: Intent, consent: Consent, dest: tuple[str, int] | None = None) -> dict:
