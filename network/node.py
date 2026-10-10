@@ -1,6 +1,7 @@
 """python -m network.node
 
 Announces on UDP 48750 and prints the shared hop schedule.
+An x42 frame is settled before discovery. A mismatch is dropped.
 Does not key a transmitter.
 """
 
@@ -11,13 +12,19 @@ import time
 
 from app.types import load_config
 from crypto.layer import EncryptionLayer
-from crypto.hopping import schedule
+from crypto.hopping import spreading_code
 from network.discovery import Directory
+from radio.board import RadioBoard
+from x402.rail import Amount, Identity
+from x402.receive import on_datagram
 
 
 def main() -> None:
     cfg = load_config()
     directory = Directory(cfg["node_id"], EncryptionLayer(), cfg["bands"], int(cfg.get("hop", {}).get("dwell_ms", 250)))
+    board = RadioBoard(cfg)
+    expected = Amount(cfg.get("x42", {}).get("quantity", "10000"), cfg.get("x42", {}).get("asset", "USDC"), cfg.get("x42", {}).get("price", "1"))
+    identity = Identity(cfg["node_id"], "mlkem768")
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -27,11 +34,21 @@ def main() -> None:
     while True:
         raw = directory.announce()
         sock.sendto(raw.encode(), ("255.255.255.255", int(cfg["mesh_port"])))
-        hops = schedule({"bands": cfg["bands"], "hop": cfg.get("hop", {})}, directory.crypto.ensure(), slots=4)
-        print(f"slot {hops[0]['slot']} freq {hops[0]['freq_hz']} peers {list(directory.peers)}")
+        hops = directory.hop_lock(cfg["node_id"], time.time()) if cfg["node_id"] in directory.peers else []
+        if not hops:
+            from crypto.hopping import schedule
+            hops = schedule({"bands": cfg["bands"], "hop": cfg.get("hop", {})}, directory.crypto.ensure(), slots=4)
+        print(f"slot {hops[0]['slot']} freq {hops[0]['freq_hz']} peers {list(directory.peers)} board {board.probe()}")
+        board.apply_hop(float(hops[0]["freq_hz"]), spreading_code(directory.crypto.ensure()))
         try:
             packet, _addr = sock.recvfrom(4096)
-            peer = directory.ingest(packet.decode())
+            text = packet.decode()
+            settled = on_datagram(text, expected, identity)
+            if settled is not None:
+                print(f"x42 {settled['stage']} {settled['note']}")
+                if not settled["ok"]:
+                    continue
+            peer = directory.ingest(text)
             if peer:
                 print(f"heard {peer.node_id} slot {peer.slot} freq {peer.freq_hz}")
         except TimeoutError:
