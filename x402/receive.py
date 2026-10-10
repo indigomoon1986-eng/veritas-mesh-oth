@@ -2,7 +2,7 @@
 
 The sender puts the VTH1 blob in a mesh packet of kind x42. The peer unpacks
 before any hop or key, rebuilds the typed amount, and settles it against the
-expected asset. A mismatch is dropped.
+expected asset. A mismatch is dropped. An accepted frame can key if armed.
 """
 
 from __future__ import annotations
@@ -38,3 +38,16 @@ def receive_frame(raw: str, expected: Amount, identity: Identity) -> dict:
     if not settled.ok:
         return {"ok": False, "stage": "validation", "note": settled.note, "amount": None}
     return {"ok": True, "stage": "accepted", "note": "typed amount matches", "amount": got, "audit": ["unpack", "validation", "accepted"]}
+
+
+def on_datagram(raw: str, expected: Amount, identity: Identity) -> dict | None:
+    if '"x42"' not in raw:
+        return None
+    return receive_frame(raw, expected, identity)
+
+
+def key_if_accepted(board, settled: dict | None, freq_hz: float) -> bool:
+    if settled is None or not settled.get("ok") or not getattr(board, "armed", False):
+        return False
+    board.key_on_receive(True, freq_hz)
+    return board.tx_enabled
