@@ -1,8 +1,7 @@
 """python -m network.node
 
-Announces on UDP 48750 and prints the shared hop schedule.
-An x42 frame is settled before discovery. A mismatch is dropped.
-Does not key a transmitter.
+Announces on UDP 48750. An accepted x42 frame can key the radio if armed.
+A failed settle does not key. Does not key on an open carrier.
 """
 
 from __future__ import annotations
@@ -16,13 +15,15 @@ from crypto.hopping import spreading_code
 from network.discovery import Directory
 from radio.board import RadioBoard
 from x402.rail import Amount, Identity
-from x402.receive import on_datagram
+from x402.receive import key_if_accepted, on_datagram
 
 
 def main() -> None:
     cfg = load_config()
     directory = Directory(cfg["node_id"], EncryptionLayer(), cfg["bands"], int(cfg.get("hop", {}).get("dwell_ms", 250)))
     board = RadioBoard(cfg)
+    if cfg.get("radio", {}).get("armed"):
+        board.arm()
     expected = Amount(cfg.get("x42", {}).get("quantity", "10000"), cfg.get("x42", {}).get("asset", "USDC"), cfg.get("x42", {}).get("price", "1"))
     identity = Identity(cfg["node_id"], "mlkem768")
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -38,7 +39,6 @@ def main() -> None:
         if not hops:
             from crypto.hopping import schedule
             hops = schedule({"bands": cfg["bands"], "hop": cfg.get("hop", {})}, directory.crypto.ensure(), slots=4)
-        print(f"slot {hops[0]['slot']} freq {hops[0]['freq_hz']} peers {list(directory.peers)} board {board.probe()}")
         board.apply_hop(float(hops[0]["freq_hz"]), spreading_code(directory.crypto.ensure()))
         try:
             packet, _addr = sock.recvfrom(4096)
@@ -46,6 +46,8 @@ def main() -> None:
             settled = on_datagram(text, expected, identity)
             if settled is not None:
                 print(f"x42 {settled['stage']} {settled['note']}")
+                if key_if_accepted(board, settled, float(hops[0]["freq_hz"])):
+                    print(f"keyed {hops[0]['freq_hz']}")
                 if not settled["ok"]:
                     continue
             peer = directory.ingest(text)
